@@ -14,5 +14,5 @@ int main() {
 
     //std::cout << transpose(r) << std::endl;
 
-    std::cin.ignore();
+    // std::cin.ignore();
 }
