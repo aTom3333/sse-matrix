@@ -2,13 +2,19 @@
 #define TEST_MACRO_HPP
 
 
-#if defined(__AVX2__)
+#if defined(__AVX512F__) || defined(__AVX512DQ__)
+    #define HAS_AVX512 1
+#else
+    #define HAS_AVX512 0
+#endif
+
+#if HAS_AVX512 || defined(__AVX2__)
     #define HAS_AVX2 1
 #else
     #define HAS_AVX2 0
 #endif
 
-#if defined(__AVX__)
+#if HAS_AVX2 || defined(__AVX__)
     #define HAS_AVX 1
 #else
     #define HAS_AVX 0

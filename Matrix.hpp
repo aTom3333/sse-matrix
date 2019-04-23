@@ -147,6 +147,9 @@ namespace {
                         {
                             case 0: break; // Rien à faire mais on ne devrait jamais arriver là
                             case 1:
+                            #if !HAS_AVX
+                            default:
+                            #endif
                             {
                                 // SSE 128bits
                                 __m128 col = _mm_load_ps(b_transposed.data() + done_cols*b.height());
@@ -156,9 +159,12 @@ namespace {
                                 break;
                             }
 
+                            #if HAS_AVX
                             case 2:
                             case 3:
+                            #if !HAS_AVX512
                             default:
+                            #endif
                             {
                                 // SSE 256bits
                                 __m256 line_doubled = _mm256_castps128_ps256(cur_line);
@@ -174,12 +180,36 @@ namespace {
                                 break;
                             }
 
-                                //default: // 4 and over
-                                {
-                                    // SSE 512bits
-                                    done_cols += 4;
-                                    break;
-                                }
+                            #if HAS_AVX512
+                            default: // 4 and over
+                            {
+                                // SSE 512bits
+                                __m256 line_doubled = _mm256_castps128_ps256(cur_line);
+                                line_doubled = _mm256_insertf128_ps(line_doubled, cur_line, 1);
+                                __m512 line_quad = _mm512_castps256_ps512(line_doubled);
+                                line_quad = _mm512_insertf32x8(line_quad, line_doubled, 1);
+                                __m512 cols = _mm512_load_ps(b_transposed.data() + done_cols*b.height());
+                                __m512 r = _mm512_mul_ps(line_quad, cols);
+                                __m256 lo = _mm512_castps512_ps256(r);
+                                __m256 hi = _mm256_castpd_ps(_mm512_extractf64x4_pd(_mm512_castps_pd(r),1));
+                                
+                                lo = _mm256_hadd_ps(lo, lo);
+                                lo = _mm256_hadd_ps(lo, lo);
+                                hi = _mm256_hadd_ps(hi, hi);
+                                hi = _mm256_hadd_ps(hi, hi);
+
+                                result(line, done_cols) = _mm256_cvtss_f32(lo);
+                                lo = _mm256_permute2f128_ps(lo, lo, 1);
+                                result(line, done_cols) = _mm256_cvtss_f32(lo);
+                                
+                                result(line, done_cols+2) = _mm256_cvtss_f32(hi);
+                                hi = _mm256_permute2f128_ps(hi, hi, 1);
+                                result(line, done_cols+3) = _mm256_cvtss_f32(hi);
+                                done_cols += 4;
+                                break;
+                            }
+                            #endif
+                            #endif
                         }
                     }
                 }
