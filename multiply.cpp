@@ -17,6 +17,8 @@ __inline__ uint64_t rdtsc() {
 
 
 
+
+
 template<typename FP, size_t ROW, size_t COL>
 struct matrix;
 
