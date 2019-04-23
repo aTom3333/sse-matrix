@@ -1,4 +1,4 @@
-#include "matrix.hpp"
+#include "Matrix.hpp"
 
 int main() {
     alignas(16) float a[4] = {1, 2, 3, 4};

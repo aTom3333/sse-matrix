@@ -121,6 +121,7 @@ namespace {
             }
         };
 
+        #if HAS_SSE4_1
         template<size_t ROW, size_t COL2>
         struct multiply_helper<float, ROW, 4, COL2>
         {
@@ -186,6 +187,7 @@ namespace {
                 return result;
             }
         };
+        #endif
 
     }
 }
