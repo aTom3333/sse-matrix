@@ -5,6 +5,7 @@
 #include <iostream>
 #include <cstddef>
 #include "test_macro.hpp"
+#include "utils.hpp"
 
 #if HAS_SSE
     #include <immintrin.h>
@@ -191,9 +192,21 @@ namespace {
                     size_t done_cols = 0;
                     while(done_cols < b.width())
                     {
+                        auto count = ctz((uintptr_t)(void*)(b_transposed.data()+done_cols*b.height()));
+                        size_t current_alignment = (1ULL << (count-4));
+                        // We mesure the alignment of memory by counting the trailing zero bits
+                        
+                        
+                        // We will use the biggest simd instructions that are available and applicabale
+                        // Meaning we use them if there still enough data to fill the simd registers
+                        // And the memory is correctly aligned
+                        // After reflexion, it would seem that this useless, the only way for the pointer
+                        // To not be aligned for the maximum size simd is after executing a smaller simd iteration
+                        // Meaning we are at the end of the loop, after that the pointer is reset to the first element
+                        // which is correctly aligned
                         switch(b.width()-done_cols)
                         {
-                            case 0: break; // Rien à faire mais on ne devrait jamais arriver là
+                            case 0: 
                             case 1:
                             #if !HAS_AVX
                             default:
