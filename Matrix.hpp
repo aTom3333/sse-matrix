@@ -10,7 +10,9 @@
     #include <immintrin.h>
 #endif
 
-#if HAS_AVX
+#if HAS_AVX512
+#define SSE_ALIGN 64
+#elif HAS_AVX
     #define SSE_ALIGN 32
 #elif HAS_SSE4_1 // Essayer d'autoriser le SSE avec des versions antérieures
     #define SSE_ALIGN 16
@@ -20,6 +22,7 @@
 
 #define ALIGN_FOR(T) SSE_ALIGN < alignof(T) ? alignof(T) : SSE_ALIGN
 
+// Public interface
 
 template<typename FP, size_t ROW, size_t COL>
 class Matrix {
@@ -48,6 +51,22 @@ private:
     alignas(ALIGN_FOR(FP)) float d[ROW*COL] = {};
 };
 
+template<typename FP, size_t ROW, size_t COL1, size_t COL2>
+Matrix<FP, ROW, COL2> operator*(Matrix<FP, ROW, COL1> const& lhs, Matrix<FP, COL1, COL2> const& rhs);
+
+template<typename FP, size_t ROW, size_t COL>
+Matrix<FP, ROW, COL> operator+(Matrix<FP, ROW, COL> const& lhs, Matrix<FP, ROW, COL> const& rhs);
+
+template<typename FP, size_t ROW, size_t COL>
+Matrix<FP, ROW, COL> operator-(Matrix<FP, ROW, COL> const& lhs, Matrix<FP, ROW, COL> const& rhs);
+
+template<typename FP, size_t ROW, size_t COL>
+std::ostream& operator<<(std::ostream& o, Matrix<FP, ROW, COL> const& m);
+
+
+
+
+// Implementation details
 
 template<typename FP, size_t ROW, size_t COL>
 Matrix<FP, ROW, COL>::Matrix(std::initializer_list<FP> init)
@@ -248,6 +267,169 @@ namespace {
         };
         #endif
 
+        template<typename FP, size_t ROW, size_t COL>
+        struct add_helper {
+            using op_type = Matrix<FP, ROW, COL>;
+
+            // Fallback implementation
+            static op_type add(op_type const& a, op_type const& b) {
+                op_type output;
+
+                size_t done = 0;
+                while (done < ROW * COL) {
+                    switch (ROW * COL - done) {
+                        case 0:
+                            break; // Nothing
+                        case 1:
+                        case 2:
+                        case 3:
+#if !HAS_SSE4_1
+                            default:
+#endif
+                            // Basic implementation
+                            *(output.data() + done) = *(a.data() + done) + *(b.data() + done);
+                            ++done;
+                            break;
+
+#if HAS_SSE4_1
+                        case 4:
+                        case 5:
+                        case 6:
+                        case 7:
+#if !HAS_AVX
+                            default:
+#endif
+                        {
+                            __m128 lhs = _mm_load_ps(a.data() + done);
+                            __m128 rhs = _mm_load_ps(b.data() + done);
+                            __m128 r   = _mm_add_ps(lhs, rhs);
+                            _mm_store_ps(output.data() + done, r);
+                            done += 4;
+                            break;
+                        }
+
+#if HAS_AVX
+                        case 8:
+                        case 9:
+                        case 10:
+                        case 11:
+                        case 12:
+                        case 13:
+                        case 14:
+                        case 15:
+#if !HAS_AVX512
+                        default:
+#endif
+                        {
+                            __m256 lhs = _mm256_load_ps(a.data() + done);
+                            __m256 rhs = _mm256_load_ps(b.data() + done);
+                            __m256 r   = _mm256_add_ps(lhs, rhs);
+                            _mm256_store_ps(output.data() + done, r);
+                            done += 8;
+                            break;
+                        }
+
+#if HAS_AVX512
+                        default:
+                        {
+                            __m512 lhs = _mm512_load_ps(a.data() + done);
+                            __m512 rhs = _mm512_load_ps(b.data() + done);
+                            __m512 r = _mm512_add_ps(lhs, rhs);
+                            _mm512_store_ps(output.data() + done, r);
+                            done += 16;
+                            break;
+                        }
+#endif // HAS_AVX512
+#endif // HAS_AVX
+#endif // HAS_SSE4_1
+                    }
+                }
+
+                return output;
+            }
+        };
+
+        template<typename FP, size_t ROW, size_t COL>
+        struct sub_helper {
+            using op_type = Matrix<FP, ROW, COL>;
+
+            // Fallback implementation
+            static op_type sub(op_type const& a, op_type const& b) {
+                op_type output;
+
+                size_t done = 0;
+                while (done < ROW * COL) {
+                    switch (ROW * COL - done) {
+                        case 0:
+                            break; // Nothing
+                        case 1:
+                        case 2:
+                        case 3:
+#if !HAS_SSE4_1
+                            default:
+#endif
+                            // Basic implementation
+                            *(output.data() + done) = *(a.data() + done) - *(b.data() + done);
+                            ++done;
+                            break;
+
+#if HAS_SSE4_1
+                        case 4:
+                        case 5:
+                        case 6:
+                        case 7:
+#if !HAS_AVX
+                            default:
+#endif
+                        {
+                            __m128 lhs = _mm_load_ps(a.data() + done);
+                            __m128 rhs = _mm_load_ps(b.data() + done);
+                            __m128 r   = _mm_sub_ps(lhs, rhs);
+                            _mm_store_ps(output.data() + done, r);
+                            done += 4;
+                            break;
+                        }
+
+#if HAS_AVX
+                        case 8:
+                        case 9:
+                        case 10:
+                        case 11:
+                        case 12:
+                        case 13:
+                        case 14:
+                        case 15:
+#if !HAS_AVX512
+                        default:
+#endif
+                        {
+                            __m256 lhs = _mm256_load_ps(a.data() + done);
+                            __m256 rhs = _mm256_load_ps(b.data() + done);
+                            __m256 r   = _mm256_sub_ps(lhs, rhs);
+                            _mm256_store_ps(output.data() + done, r);
+                            done += 8;
+                            break;
+                        }
+
+#if HAS_AVX512
+                        default:
+                        {
+                            __m512 lhs = _mm512_load_ps(a.data() + done);
+                            __m512 rhs = _mm512_load_ps(b.data() + done);
+                            __m512 r = _mm512_sub_ps(lhs, rhs);
+                            _mm512_store_ps(output.data() + done, r);
+                            done += 16;
+                            break;
+                        }
+#endif // HAS_AVX512
+#endif // HAS_AVX
+#endif // HAS_SSE4_1
+                    }
+                }
+
+                return output;
+            }
+        };
     }
 }
 
@@ -255,6 +437,16 @@ template<typename FP, size_t ROW, size_t COL1, size_t COL2>
 Matrix<FP, ROW, COL2> multiply(Matrix<FP, ROW, COL1> const& lhs, Matrix<FP, COL1, COL2> const& rhs)
 {
     return detail::multiply_helper<FP, ROW, COL1, COL2>::multiply(lhs, rhs);
+}
+
+template<typename FP, size_t ROW, size_t COL>
+Matrix<FP, ROW, COL> add(Matrix<FP, ROW, COL> const& lhs, Matrix<FP, ROW, COL> const& rhs) {
+    return detail::add_helper<FP, ROW, COL>::add(lhs, rhs);
+}
+
+template<typename FP, size_t ROW, size_t COL>
+Matrix<FP, ROW, COL> substract(Matrix<FP, ROW, COL> const& lhs, Matrix<FP, ROW, COL> const& rhs) {
+    return detail::sub_helper<FP, ROW, COL>::sub(lhs, rhs);
 }
 
 template<typename FP, size_t ROW, size_t COL1, size_t COL2>
@@ -266,12 +458,12 @@ Matrix<FP, ROW, COL2> operator*(Matrix<FP, ROW, COL1> const& lhs, Matrix<FP, COL
 template<typename FP, size_t ROW, size_t COL>
 Matrix<FP, ROW, COL> operator+(Matrix<FP, ROW, COL> const& lhs, Matrix<FP, ROW, COL> const& rhs)
 {
-    Matrix<FP, ROW, COL> output;
-    for (size_t i = 0; i < output.height(); ++i)
-        for (size_t j = 0; j < output.width(); ++j){
-            output(i, j) = lhs(i, j) + rhs(i, j);
-        }
-    return output;
+    return add<FP, ROW, COL>(lhs, rhs);
+}
+
+template<typename FP, size_t ROW, size_t COL>
+Matrix<FP, ROW, COL> operator-(Matrix<FP, ROW, COL> const& lhs, Matrix<FP, ROW, COL> const& rhs) {
+    return substract<FP, ROW, COL>(lhs, rhs);
 }
 
 template<typename FP, size_t ROW, size_t COL>
