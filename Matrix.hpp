@@ -192,8 +192,8 @@ namespace {
                     size_t done_cols = 0;
                     while(done_cols < b.width())
                     {
-                        auto count = ctz((uintptr_t)(void*)(b_transposed.data()+done_cols*b.height()));
-                        size_t current_alignment = (1ULL << (count-4));
+                        //auto count = ctz((uintptr_t)(void*)(b_transposed.data()+done_cols*b.height()));
+                        //size_t current_alignment = (1ULL << (count-4));
                         // We mesure the alignment of memory by counting the trailing zero bits
                         
                         
