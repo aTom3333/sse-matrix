@@ -95,7 +95,6 @@ Matrix<FP, COL, ROW> transpose(const Matrix<FP, ROW, COL>& m){
     return output;
 }
 
-
 namespace {
     namespace detail {
         template<typename FP, size_t ROW, size_t COL1, size_t COL2>
@@ -222,14 +221,28 @@ namespace {
     }
 }
 
-
-
 template<typename FP, size_t ROW, size_t COL1, size_t COL2>
-Matrix<FP, ROW, COL2> multiply(Matrix<FP, ROW, COL1> const& a, Matrix<FP, COL1, COL2> const& b)
+Matrix<FP, ROW, COL2> multiply(Matrix<FP, ROW, COL1> const& lhs, Matrix<FP, COL1, COL2> const& rhs)
 {
-    return detail::multiply_helper<FP, ROW, COL1, COL2>::multiply(a, b);
+    return detail::multiply_helper<FP, ROW, COL1, COL2>::multiply(lhs, rhs);
 }
 
+template<typename FP, size_t ROW, size_t COL1, size_t COL2>
+Matrix<FP, ROW, COL2> operator*(Matrix<FP, ROW, COL1> const& lhs, Matrix<FP, COL1, COL2> const& rhs)
+{
+    return multiply(lhs, rhs);
+}
+
+template<typename FP, size_t ROW, size_t COL>
+Matrix<FP, ROW, COL> operator+(Matrix<FP, ROW, COL> const& lhs, Matrix<FP, ROW, COL> const& rhs)
+{
+    Matrix<FP, ROW, COL> output;
+    for (size_t i = 0; i < output.height(); ++i)
+        for (size_t j = 0; j < output.width(); ++j){
+            output(i, j) = lhs(i, j) + rhs(i, j);
+        }
+    return output;
+}
 
 template<typename FP, size_t ROW, size_t COL>
 std::ostream& operator<<(std::ostream& o, Matrix<FP, ROW, COL> const& m) {
