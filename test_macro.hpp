@@ -1,0 +1,4 @@
+#ifndef TEST_MACRO_HPP
+#define TEST_MACRO_HPP
+
+#endif // TEST_MACRO_HPP
