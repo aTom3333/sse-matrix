@@ -20,19 +20,19 @@
     #define HAS_AVX 0
 #endif
 
-#if HAS_AVX || defined(__SSE4_2__) // Pas de tests pour msvc
+#if HAS_AVX || defined(__SSE4_2__) // No existing tests with MSVC
     #define HAS_SSE4_2 1
 #else
     #define HAS_SSE4_2 0
 #endif
 
-#if HAS_SSE4_2 || defined(__SSE4_1__) // Pas de tests pour msvc
+#if HAS_SSE4_2 || defined(__SSE4_1__) // No existing tests with MSVC
     #define HAS_SSE4_1 1
 #else
     #define HAS_SSE4_1 0
 #endif
 
-#if HAS_SSE4_1 || defined(__SSE3__) // Pas de tests pour msvc
+#if HAS_SSE4_1 || defined(__SSE3__) // No existing tests with MSVC
     #define HAS_SSE3 1
 #else
     #define HAS_SSE3 0

@@ -23,11 +23,13 @@
 
 template<typename FP, size_t ROW, size_t COL>
 class Matrix {
+    static_assert(ROW * COL > 0, "Dimensions of the matrix must be strictly positive.");
+
 public:
     Matrix() = default;
     Matrix(std::initializer_list<FP>);
     
-    // accessor
+    // accessors
     constexpr size_t width() const noexcept;
     constexpr size_t height() const noexcept;
     
@@ -36,7 +38,11 @@ public:
     
     FP const* data() const noexcept;
     FP* data() noexcept;
-    
+
+    FP const* begin() const noexcept;
+    FP* begin() noexcept;
+    FP const* end() const noexcept;
+    FP* end() noexcept;
     
 private:
     alignas(ALIGN_FOR(FP)) float d[ROW*COL] = {};
@@ -83,6 +89,30 @@ template<typename FP, size_t ROW, size_t COL>
 FP* Matrix<FP, ROW, COL>::data() noexcept
 {
     return d;
+}
+
+template<typename FP, size_t ROW, size_t COL>
+FP const* Matrix<FP, ROW, COL>::begin() const noexcept
+{
+    return data();
+}
+
+template<typename FP, size_t ROW, size_t COL>
+FP* Matrix<FP, ROW, COL>::begin() noexcept
+{
+    return data();
+}
+
+template<typename FP, size_t ROW, size_t COL>
+FP const* Matrix<FP, ROW, COL>::end() const noexcept
+{
+    return &d[ROW * COL];
+}
+
+template<typename FP, size_t ROW, size_t COL>
+FP* Matrix<FP, ROW, COL>::end() noexcept
+{
+    return &d[ROW * COL];
 }
 
 template <typename FP, size_t ROW, size_t COL>
@@ -255,7 +285,6 @@ std::ostream& operator<<(std::ostream& o, Matrix<FP, ROW, COL> const& m) {
     }
     return o;
 }
-
 
 
 #endif // MATRIX_HPP
