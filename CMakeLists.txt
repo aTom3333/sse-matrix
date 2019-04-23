@@ -7,6 +7,7 @@ set(EXECUTABLE_NAME "matrix-multiply")
 set(CMAKE_CXX_STANDARD 17)
 
 add_executable(${EXECUTABLE_NAME} multiply2.cpp test_macro.hpp Matrix.hpp)
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_HOME_DIRECTORY}/bin/${CMAKE_BUILD_TYPE})
 
 IF(MSVC)
     target_compile_options(${EXECUTABLE_NAME} PUBLIC /arch:AVX2)
