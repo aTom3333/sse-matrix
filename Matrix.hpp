@@ -296,22 +296,22 @@ namespace {
                         case 1:
                         case 2:
                         case 3:
-#if !HAS_SSE4_1
-                            default:
-#endif
+                        #if !HAS_SSE4_1
+                        default:
+                        #endif
                             // Basic implementation
                             *(output.data() + done) = *(a.data() + done) + *(b.data() + done);
                             ++done;
                             break;
 
-#if HAS_SSE4_1
+                        #if HAS_SSE4_1
                         case 4:
                         case 5:
                         case 6:
                         case 7:
-#if !HAS_AVX
-                            default:
-#endif
+                        #if !HAS_AVX
+                        default:
+                        #endif
                         {
                             __m128 lhs = _mm_load_ps(a.data() + done);
                             __m128 rhs = _mm_load_ps(b.data() + done);
@@ -321,7 +321,7 @@ namespace {
                             break;
                         }
 
-#if HAS_AVX
+                        #if HAS_AVX
                         case 8:
                         case 9:
                         case 10:
@@ -330,9 +330,9 @@ namespace {
                         case 13:
                         case 14:
                         case 15:
-#if !HAS_AVX512
+                        #if !HAS_AVX512
                         default:
-#endif
+                        #endif
                         {
                             __m256 lhs = _mm256_load_ps(a.data() + done);
                             __m256 rhs = _mm256_load_ps(b.data() + done);
@@ -342,7 +342,7 @@ namespace {
                             break;
                         }
 
-#if HAS_AVX512
+                        #if HAS_AVX512
                         default:
                         {
                             __m512 lhs = _mm512_load_ps(a.data() + done);
@@ -352,9 +352,9 @@ namespace {
                             done += 16;
                             break;
                         }
-#endif // HAS_AVX512
-#endif // HAS_AVX
-#endif // HAS_SSE4_1
+                        #endif // HAS_AVX512
+                        #endif // HAS_AVX
+                        #endif // HAS_SSE4_1
                     }
                 }
 
@@ -378,22 +378,22 @@ namespace {
                         case 1:
                         case 2:
                         case 3:
-#if !HAS_SSE4_1
-                            default:
-#endif
+                        #if !HAS_SSE4_1
+                        default:
+                        #endif
                             // Basic implementation
                             *(output.data() + done) = *(a.data() + done) - *(b.data() + done);
                             ++done;
                             break;
 
-#if HAS_SSE4_1
+                        #if HAS_SSE4_1
                         case 4:
                         case 5:
                         case 6:
                         case 7:
-#if !HAS_AVX
-                            default:
-#endif
+                        #if !HAS_AVX
+                        default:
+                        #endif
                         {
                             __m128 lhs = _mm_load_ps(a.data() + done);
                             __m128 rhs = _mm_load_ps(b.data() + done);
@@ -403,7 +403,7 @@ namespace {
                             break;
                         }
 
-#if HAS_AVX
+                        #if HAS_AVX
                         case 8:
                         case 9:
                         case 10:
@@ -412,9 +412,9 @@ namespace {
                         case 13:
                         case 14:
                         case 15:
-#if !HAS_AVX512
+                        #if !HAS_AVX512
                         default:
-#endif
+                        #endif
                         {
                             __m256 lhs = _mm256_load_ps(a.data() + done);
                             __m256 rhs = _mm256_load_ps(b.data() + done);
@@ -424,7 +424,7 @@ namespace {
                             break;
                         }
 
-#if HAS_AVX512
+                        #if HAS_AVX512
                         default:
                         {
                             __m512 lhs = _mm512_load_ps(a.data() + done);
@@ -434,9 +434,9 @@ namespace {
                             done += 16;
                             break;
                         }
-#endif // HAS_AVX512
-#endif // HAS_AVX
-#endif // HAS_SSE4_1
+                        #endif // HAS_AVX512
+                        #endif // HAS_AVX
+                        #endif // HAS_SSE4_1
                     }
                 }
 
